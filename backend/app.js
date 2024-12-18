@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-
+const path = require("path"); 
 // Initialize app
 const app = express();
 
@@ -34,14 +34,42 @@ app.get("/", (req, res) => {
 
 // Get All Users
 app.get("/users", async (req, res) => {
-  try {
-    const users = await User.find();
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ error: "Error fetching users" });
-  }
-});
+    try {
+      const users = await User.find();
+      // Call exportDataToCSV to export the data to CSV file
+      await exportDataToCSV(users);  // Pass users data to export to CSV
+      res.json(users);  // Send users as response after CSV is generated
+    } catch (error) {
+      res.status(500).json({ error: "Error fetching users" });
+    }
+  });
+//convert to csv
 
+const { Parser } = require("json2csv");  // Import Parser from json2csv
+const fs = require("fs"); 
+
+
+
+
+
+
+const exportDataToCSV = async (users) => {
+    try {
+      // Specify the fields for the CSV
+      const fields = ["name", "dateOfBirth"];
+      const json2csvParser = new Parser({ fields });
+  
+      // Convert JSON data to CSV
+      const csv = json2csvParser.parse(users);
+  
+      // Save the CSV file
+      const filePath = path.join(__dirname, "users_export.csv");
+      fs.writeFileSync(filePath, csv);
+      console.log("Data successfully exported to CSV at:", filePath);
+    } catch (err) {
+      console.error("Error exporting data:", err);
+    }
+  };
 // Add a New User
 app.post("/users", async (req, res) => {
   const { name, dateOfBirth } = req.body;
@@ -61,7 +89,7 @@ app.post("/users", async (req, res) => {
 });
 
 // Start Server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PfORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
