@@ -36,15 +36,19 @@ app.get("/", (req, res) => {
 app.get("/users", async (req, res) => {
     try {
       const users = await User.find();
-      // Call exportDataToCSV to export the data to CSV file
-      await exportDataToCSV(users);  // Pass users data to export to CSV
+
       res.json(users);  // Send users as response after CSV is generated
     } catch (error) {
       res.status(500).json({ error: "Error fetching users" });
     }
   });
 //convert to csv
-
+app.get("/csv",async (req, res) => {
+    const users = await User.find();
+    // Call exportDataToCSV to export the data to CSV file
+     await exportDataToCSV(users);  // Pass users data to export to CSV
+    res.send("Welcome to the User Management API");
+  });
 const { Parser } = require("json2csv");  // Import Parser from json2csv
 const fs = require("fs"); 
 
