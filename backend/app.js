@@ -70,10 +70,57 @@ const exportDataToCSV = async (users) => {
       const filePath = path.join(__dirname, "users_export.csv");
       fs.writeFileSync(filePath, csv);
       console.log("Data successfully exported to CSV at:", filePath);
+      // Convert CSV to LaTeX
+      convertCSVToResumeLatex("users_export.csv");
     } catch (err) {
       console.error("Error exporting data:", err);
     }
   };
+
+  //csv to latex
+
+const csv = require("csv-parser");
+
+// Read CSV and convert to LaTeX
+const convertCSVToResumeLatex = (csvFilePath) => {
+    let latexContent = `
+  \\documentclass[a4paper,10pt]{article}
+  \\usepackage[margin=1in]{geometry}
+  \\usepackage{titlesec}
+  \\usepackage{enumitem}
+  \\titleformat{\\section}{\\bfseries\\Large}{\\thesection.}{0.5em}{}
+  
+  \\begin{document}
+  
+  \\title{User Information Resume}
+  \\author{}
+  \\date{}
+  \\maketitle
+  
+  `;
+  
+    fs.createReadStream(csvFilePath)
+      .pipe(csv())
+      .on("data", (row) => {
+        latexContent += `
+  \\section*{${row.name}}
+  \\begin{itemize}[leftmargin=*]
+    \\item \\textbf{Name:} ${row.name}
+    \\item \\textbf{Date of Birth:} ${row.dateOfBirth}
+  \\end{itemize}
+  `;
+      })
+      .on("end", () => {
+        latexContent += `
+  \\end{document}
+        `;
+        fs.writeFileSync("resume.tex", latexContent);
+        console.log("Resume LaTeX file generated: resume.tex");
+      });
+  };
+
+
+
 // Add a New User
 app.post("/users", async (req, res) => {
   const { name, dateOfBirth } = req.body;
